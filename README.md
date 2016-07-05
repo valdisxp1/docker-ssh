@@ -1,6 +1,8 @@
-# robbertkl/ssh
+# valdisxp1/sshd-socat
 
-[![](https://badge.imagelayers.io/robbertkl/ssh:latest.svg)](https://imagelayers.io/?images=robbertkl/ssh:latest)
+Based opon robbertkl/ssh
+
+[![](https://badge.imagelayers.io/valdisxp1/sshd-socat:latest.svg)](https://imagelayers.io/?images=valdisxp1/sshd-socat:latest)
 
 Docker container running OpenSSH server:
 
@@ -12,7 +14,7 @@ Docker container running OpenSSH server:
 Run like this:
 
 ```
-docker run -d -e AUTHORIZED_KEYS="..." -p 2222:22 robbertkl/ssh
+docker run -d -e AUTHORIZED_KEYS="..." -p 2222:22 valdisxp1/sshd-socat
 ```
 
 You can then SSH with user root.
@@ -23,7 +25,8 @@ You can then SSH with user root.
 
 ## Authors
 
-* Robbert Klarenbeek, <robbertkl@renbeek.nl>
+* Robbert Klarenbeek, <robbertkl@renbeek.nl> (original robbertkl/ssh docker container)
+* Valdis Adamsons, <valdisxp1@gmail.com>
 
 ## License
 

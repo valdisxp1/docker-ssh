@@ -1,5 +1,5 @@
 FROM alpine:latest
-MAINTAINER Robbert Klarenbeek <robbertkl@renbeek.nl>
+MAINTAINER Valdis Adamsons <valdisxp1@gmail.com>
 
 RUN apk add --no-cache openssh socat openssl
 

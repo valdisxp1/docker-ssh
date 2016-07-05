@@ -1,4 +1,4 @@
-NAME = robbertkl/ssh
+NAME = valdisxp1/sshd-socat
 
 all:: build
 
