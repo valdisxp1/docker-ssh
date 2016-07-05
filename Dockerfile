@@ -1,7 +1,7 @@
 FROM alpine:latest
 MAINTAINER Robbert Klarenbeek <robbertkl@renbeek.nl>
 
-RUN apk add --no-cache openssh socat
+RUN apk add --no-cache openssh socat openssl
 
 RUN >/etc/motd
 COPY init.sh /
