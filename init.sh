@@ -10,4 +10,11 @@ chmod 700 /root/.ssh
 
 ./update_keys.sh
 
+if ! ls /root/.ssh/authorized_keys{,2} 1> /dev/null 2>&1
+then
+	>&2 echo "ERROR: authorized_keys file missing in /root/.ssh/"
+        >&2 echo "       make sure \$AUTHORIZED_KEYS contains at least 1 key"
+	exit 255
+fi
+
 exec /usr/sbin/sshd -D
