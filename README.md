@@ -2,7 +2,7 @@
 
 Based opon robbertkl/ssh
 
-[![](https://badge.imagelayers.io/valdisxp1/sshd-socat:latest.svg)](https://imagelayers.io/?images=valdisxp1/sshd-socat:latest)
+[![nodesource/node](http://dockeri.co/image/valdisxp1/sshd-socat)](https://registry.hub.docker.com/u/valdisxp1/sshd-socat/)
 
 Docker container running OpenSSH server:
 
