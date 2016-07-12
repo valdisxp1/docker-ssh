@@ -1,7 +1,7 @@
 FROM alpine:latest
 MAINTAINER Valdis Adamsons <valdisxp1@gmail.com>
 
-RUN apk add --no-cache openssh socat openssl
+RUN apk add --no-cache openssh socat openssl docker
 
 RUN >/etc/motd
 COPY init.sh /
