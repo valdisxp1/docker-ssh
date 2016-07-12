@@ -7,6 +7,8 @@ RUN >/etc/motd
 COPY init.sh /
 COPY update_keys.sh /
 
+COPY sshd_config /etc/ssh/
+
 EXPOSE 22
 
 CMD [ "/init.sh" ]
