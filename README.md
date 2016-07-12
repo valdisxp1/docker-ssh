@@ -8,7 +8,7 @@ Docker container running OpenSSH server:
 
 * Exposes port 22
 * Fills `~/.ssh/authorized_keys` from an environment variable or from specified URL.
-* Add socat for use with forwarding the `/var/run/docker.sock`. See https://github.com/RickyCook/ssh-forward-unix-socket
+* Socat for use with forwarding the `/var/run/docker.sock`. See https://github.com/RickyCook/ssh-forward-unix-socket
 
 ## Usage
 
@@ -36,6 +36,31 @@ When `AUTHORIZED_KEYS_URL` is populated the keys will be re-downloaded:
 If the website is down or the new keys are invalid, they will be ignored and the old keys used instead.
 
 This doesn't do much when there is only a static key specified with `AUTHORIZED_KEYS`.
+
+### Connecting to the docker remotely via SSH by forwarding the docker socket
+
+This assumes docker is already working on the server and docker client is installed on the client.
+
+1. Run the `valdisxp1/sshd-socat` container on the server. Mount the docker socket as a volume, i.e., `-v /var/run/docker.sock:/var/run/docker.sock`. Specify the keys as usual.
+2. Dowload https://github.com/RickyCook/ssh-forward-unix-socket on the client
+3. Specify your ssh connection details and run this in a seperate shell (must have this open):
+  ```bash
+  sudo ./forward_socket --local_path /var/run/docker2.sock --local_user $(id -un) "ssh -i <path-to-key> root@<server-host> -p 2222" /var/run/docker.sock
+  ``` 
+  Local path is `/var/run/docker2.sock` to avoid possible conflicts with local docker.
+
+4. You can now connect to the remote docker by adding `-H unix:///var/run/docker2.sock` to your command.
+
+  Example:
+  ```bash
+    docker -H unix:///var/run/docker2.sock ps
+  ```
+  
+  Alternatively you can use the enviroment variable.
+  ```bash
+    export DOCKER_HOST="unix:///var/run/docker2.sock"
+    docker ps
+  ```
 
 ## Environment variables
 
