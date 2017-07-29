@@ -1,4 +1,4 @@
-FROM schmich/armv7hf-alpine-qemu:latest
+FROM schmich/armv7hf-alpine-qemu:3.5
 MAINTAINER Valdis Adamsons <valdisxp1@gmail.com>
 
 RUN ["cross-build-start"]

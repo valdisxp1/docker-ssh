@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.5
 MAINTAINER Valdis Adamsons <valdisxp1@gmail.com>
 
 RUN apk add --no-cache openssh socat openssl
