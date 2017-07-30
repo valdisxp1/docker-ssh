@@ -8,6 +8,12 @@ fi
 mkdir -p /root/.ssh
 chmod 700 /root/.ssh
 
+echo "---------- SERVER PUBLIC KEYS ----------"
+cat /etc/ssh/ssh_host_*.pub
+echo "---------- FINGERPRINTS ----------"
+ls -1 /etc/ssh/ssh_host_*.pub | xargs -n 1 ssh-keygen -lf
+echo "---------- END ----------"
+
 ./update_keys.sh
 
 if ! ls /root/.ssh/authorized_keys 1> /dev/null 2>&1
