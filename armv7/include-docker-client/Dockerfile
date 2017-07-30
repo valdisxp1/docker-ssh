@@ -9,8 +9,7 @@ RUN >/etc/motd
 
 RUN ["cross-build-end"]
 
-COPY init.sh /
-COPY update_keys.sh /
+COPY init.sh update_keys.sh /
 
 COPY sshd_config /etc/ssh/
 
