@@ -1,20 +1,37 @@
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DockerClientBuilder
-import org.scalatest.{FlatSpec, Matchers}
+import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 
 import scala.sys.process._
 
-class SSHDSpec extends FlatSpec with Matchers {
+class SSHDSpec extends FlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfter {
 
-  implicit var docker = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build()
+  implicit var docker: DockerClient = _
+  var containerToRemove: Option[String] = None
+
+  override protected def beforeAll() =  {
+    docker = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build()
+  }
 
   "user" should "be able to login with a fixed public key" in {
     val key = SSH.genKey()
     val containerId = SSHD("valdisxp1/sshd-socat:latest").authorizedKeys(key.publicKey)
+    containerToRemove = Some(containerId)
     Thread.sleep(1000)
     val info = docker.inspectContainerCmd(containerId).exec()
     val ip = info.getNetworkSettings.getNetworks.get("bridge").getIpAddress
     containerId should startWith(SSH.connect(s"root@$ip",key = key)("echo","$HOSTNAME").trim)
+  }
+
+  after {
+    containerToRemove.foreach {
+      id =>
+        docker.removeContainerCmd(id).withForce(true).exec()
+    }
+  }
+
+  override protected def afterAll() = {
+    docker.close()
   }
 }
 
@@ -24,7 +41,9 @@ case class SSHD(imageName: String)(implicit docker: DockerClient) {
   }
 
   private def container(config: (String, String)): String = {
-    val id = docker.createContainerCmd(imageName).withEnv(s"${config._1}=${config._2}").exec().getId
+    val id = docker.createContainerCmd(imageName)
+      .withEnv(s"${config._1}=${config._2}")
+      .exec().getId
     docker.startContainerCmd(id).exec()
     id
   }
