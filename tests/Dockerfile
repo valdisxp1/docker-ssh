@@ -8,4 +8,9 @@ RUN ["sbt","sbtVersion"]
 
 RUN apk add --no-cache openssh
 
-cmd ["sbt"]
+COPY * /workdir/
+WORKDIR /workdir/
+
+RUN ["sbt","test:compile"]
+
+CMD ["sbt test"]
