@@ -13,4 +13,4 @@ WORKDIR /workdir/
 
 RUN ["sbt","test:compile"]
 
-CMD ["sbt test"]
+CMD ["sbt","test"]
