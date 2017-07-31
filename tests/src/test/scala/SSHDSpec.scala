@@ -7,7 +7,7 @@ import scala.concurrent.duration._
 
 class SSHDSpec extends FlatSpec with Matchers {
 
-  val docker = tugboat.Docker()
+  val docker = tugboat.Docker("unix:///var/run/docker2.sock")
 
 
   "user" should "be able to login with a fixed public key" in {
@@ -20,7 +20,7 @@ class SSHDSpec extends FlatSpec with Matchers {
 }
 
 case class SSHD(imageName: String) {
-  val docker = tugboat.Docker()
+  val docker = tugboat.Docker("unix:///var/run/docker2.sock")
   def authorizedKeys(keys: String*) = {
     container("AUTHORIZED_KEYS" -> keys.mkString(" "))
   }
@@ -44,7 +44,8 @@ object SSH {
   case class Key(file: String, publicKey: String)
 
   def genKey(filename: String = "id_rsa") = {
-    Seq("ssh-keygen", "-N", "", "-b", "2048", "-t", "rsa", "-f", filename).!!
+    Seq("rm","-v","id_rsa","id_rsa.pub").!
+    Seq("ssh-keygen", "-N", "", "-b", "2048", "-t", "rsa", "-f", filename).!!(ProcessLogger.apply(println(_)))
     Key(filename, Seq("cat", filename + ".pub").!!)
   }
 
