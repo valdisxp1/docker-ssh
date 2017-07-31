@@ -1,37 +1,32 @@
+import com.github.dockerjava.api.DockerClient
+import com.github.dockerjava.core.DockerClientBuilder
 import org.scalatest.{FlatSpec, Matchers}
 
-import scala.concurrent.Await
-import sys.process._
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.duration._
+import scala.sys.process._
 
 class SSHDSpec extends FlatSpec with Matchers {
 
-  val docker = tugboat.Docker("unix:///var/run/docker2.sock")
-
+  implicit var docker = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build()
 
   "user" should "be able to login with a fixed public key" in {
     val key = SSH.genKey()
-    val containerId = Await.result(SSHD("valdisxp1/sshd-socat:latest").authorizedKeys(key.publicKey),1.second)
+    val containerId = SSHD("valdisxp1/sshd-socat:latest").authorizedKeys(key.publicKey)
     Thread.sleep(1000)
-    val ip = docker.containers.get(containerId)().map(_.networkSettings.ipAddr)
-    SSH.connect(s"root@$ip",key = key)("echo","$HOSTNAME").trim shouldBe containerId
+    val info = docker.inspectContainerCmd(containerId).exec()
+    val ip = info.getNetworkSettings.getNetworks.get("bridge").getIpAddress
+    containerId should startWith(SSH.connect(s"root@$ip",key = key)("echo","$HOSTNAME").trim)
   }
 }
 
-case class SSHD(imageName: String) {
-  val docker = tugboat.Docker("unix:///var/run/docker2.sock")
+case class SSHD(imageName: String)(implicit docker: DockerClient) {
   def authorizedKeys(keys: String*) = {
     container("AUTHORIZED_KEYS" -> keys.mkString(" "))
   }
 
-  private def container(config: (String, String)) = {
-    docker.containers.create(imageName)
-      .env(config)()
-      .flatMap {
-        container =>
-          docker.containers.get(container.id).start().map(_ => container.id)
-      }
+  private def container(config: (String, String)): String = {
+    val id = docker.createContainerCmd(imageName).withEnv(s"${config._1}=${config._2}").exec().getId
+    docker.startContainerCmd(id).exec()
+    id
   }
 
   def authorizedKeysUrl(url: String) = {

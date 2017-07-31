@@ -6,6 +6,4 @@ version := "1.0-SNAPSHOT"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
-resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
-
-libraryDependencies += "me.lessis" %% "tugboat" % "0.2.0"
+libraryDependencies += "com.github.docker-java" % "docker-java" % "3.0.12"
