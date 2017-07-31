@@ -1,32 +1,42 @@
-import com.dimafeng.testcontainers.{ForAllTestContainer, GenericContainer}
-import org.junit.runner.Description
 import org.scalatest.{FlatSpec, Matchers}
-import org.testcontainers.containers.wait.{LogMessageWaitStrategy, Wait}
 
-import scala.collection.JavaConverters._
+import scala.concurrent.Await
 import sys.process._
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration._
 
 class SSHDSpec extends FlatSpec with Matchers {
-  implicit private val suiteDescription = Description.createSuiteDescription(this.getClass)
+
+  val docker = tugboat.Docker()
+
 
   "user" should "be able to login with a fixed public key" in {
     val key = SSH.genKey()
-    val container = SSHD("valdisxp1/sshd-socat:latest").authorizedKeys(key.publicKey)
-    container.starting()
+    val containerId = Await.result(SSHD("valdisxp1/sshd-socat:latest").authorizedKeys(key.publicKey),1.second)
     Thread.sleep(1000)
-    val ip = container.container.getContainerInfo.getNetworkSettings.getNetworks.asScala("bridge").getIpAddress
-    SSH.connect(s"root@$ip",key = key)("echo","$HOSTNAME").trim shouldBe container.containerId
+    val ip = docker.containers.get(containerId)().map(_.networkSettings.ipAddr)
+    SSH.connect(s"root@$ip",key = key)("echo","$HOSTNAME").trim shouldBe containerId
   }
 }
 
 case class SSHD(imageName: String) {
-  val waitStrategy = new LogMessageWaitStrategy().withRegEx("Authorized keys")
-  def authorizedKeys(keys: String*) = GenericContainer(imageName, waitStrategy = waitStrategy,
-      env = Map("AUTHORIZED_KEYS" -> keys.mkString(" "))
-    )
-  def authorizedKeysUrl(url: String) = GenericContainer(imageName, waitStrategy = waitStrategy,
-    env = Map("AUTHORIZED_KEYS_URL" -> url)
-  )
+  val docker = tugboat.Docker()
+  def authorizedKeys(keys: String*) = {
+    container("AUTHORIZED_KEYS" -> keys.mkString(" "))
+  }
+
+  private def container(config: (String, String)) = {
+    docker.containers.create(imageName)
+      .env(config)()
+      .flatMap {
+        container =>
+          docker.containers.get(container.id).start().map(_ => container.id)
+      }
+  }
+
+  def authorizedKeysUrl(url: String) = {
+    container("AUTHORIZED_KEYS_URL" -> url)
+  }
 }
 
 object SSH {

@@ -1,9 +1,11 @@
 name := "SSHD docker container tests"
 
-scalaVersion := "2.12.3"
+scalaVersion := "2.11.8"
 
 version := "1.0-SNAPSHOT"
 
 libraryDependencies += "org.scalatest" %% "scalatest" % "3.0.1" % "test"
 
-libraryDependencies += "com.dimafeng" %% "testcontainers-scala" % "0.7.0" % "test"
+resolvers += "softprops-maven" at "http://dl.bintray.com/content/softprops/maven"
+
+libraryDependencies += "me.lessis" %% "tugboat" % "0.2.0"
