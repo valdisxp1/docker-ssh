@@ -20,11 +20,22 @@ class SSHDSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Before
     Thread.sleep(1000)
     val info = docker.inspectContainerCmd(containerId).exec()
     val ip = info.getNetworkSettings.getNetworks.get("bridge").getIpAddress
-    containerId should startWith(SSH.connect(s"root@$ip",key = key)("echo","$HOSTNAME").trim)
+    val hostNameFromSSH = SSH.connect(s"root@$ip", key = key)("echo", "$HOSTNAME").trim
+    hostNameFromSSH should not be empty
+    containerId should startWith(hostNameFromSSH)
   }
 
   "sshd" should "reject the wrong key" in {
-    fail("not yet tested")
+    val key = SSH.genKey()
+    val wrongKey = SSH.genKey("bad")
+    val containerId = SSHD(imageUnderTest).authorizedKeys(key.publicKey)
+    containersToRemove :+= Some(containerId)
+    Thread.sleep(1000)
+    val info = docker.inspectContainerCmd(containerId).exec()
+    val ip = info.getNetworkSettings.getNetworks.get("bridge").getIpAddress
+    assertThrows[Exception] {
+      SSH.connect(s"root@$ip", key = wrongKey)("echo", "$HOSTNAME")
+    }
   }
 
   it should "reject passwords in general" in {
