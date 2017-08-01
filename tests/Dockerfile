@@ -6,7 +6,7 @@ RUN wget -qO - https://github.com/sbt/sbt/releases/download/v0.13.15/sbt-0.13.15
 RUN ["ln", "-s", "/sbt/bin/sbt", "/usr/bin/sbt"]
 RUN ["sbt","sbtVersion"]
 
-RUN apk add --no-cache openssh libstdc++
+RUN apk add --no-cache openssh-client libstdc++
 
 WORKDIR /workdir/
 COPY build.sbt /workdir/
