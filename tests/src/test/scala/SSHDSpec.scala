@@ -5,6 +5,7 @@ import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
 import scala.sys.process._
 
 class SSHDSpec extends FlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfter {
+  val imageUnderTest = "valdisxp1/sshd-socat:latest"
 
   implicit var docker: DockerClient = _
   var containerToRemove: Option[String] = None
@@ -12,15 +13,34 @@ class SSHDSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Before
   override protected def beforeAll() =  {
     docker = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build()
   }
-
   "user" should "be able to login with a fixed public key" in {
     val key = SSH.genKey()
-    val containerId = SSHD("valdisxp1/sshd-socat:latest").authorizedKeys(key.publicKey)
+    val containerId = SSHD(imageUnderTest).authorizedKeys(key.publicKey)
     containerToRemove = Some(containerId)
     Thread.sleep(1000)
     val info = docker.inspectContainerCmd(containerId).exec()
     val ip = info.getNetworkSettings.getNetworks.get("bridge").getIpAddress
     containerId should startWith(SSH.connect(s"root@$ip",key = key)("echo","$HOSTNAME").trim)
+  }
+
+  "sshd" should "reject the wrong key" in {
+    fail("not yet tested")
+  }
+
+  it should "reject passwords in general" in {
+    fail("not yet tested")
+  }
+
+  it should "update ssh keys for the URL" in {
+    fail("not yet tested")
+  }
+
+  it should "update ssh keys for the URL from HTTPS" in {
+    fail("not yet tested")
+  }
+
+  "old keys" should "still work after a bad update" in {
+    fail("not yet tested")
   }
 
   after {
