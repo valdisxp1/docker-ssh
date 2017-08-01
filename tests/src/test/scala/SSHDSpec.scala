@@ -1,3 +1,4 @@
+import com.decodified.scalassh._
 import com.github.dockerjava.api.DockerClient
 import com.github.dockerjava.core.DockerClientBuilder
 import org.scalatest.{BeforeAndAfter, BeforeAndAfterAll, FlatSpec, Matchers}
@@ -14,27 +15,32 @@ class SSHDSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Before
     docker = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build()
   }
   "user" should "be able to login with a fixed public key" in {
-    val key = SSH.genKey()
+    val key = SSH0.genKey()
     val containerId = SSHD(imageUnderTest).authorizedKeys(key.publicKey)
     containersToRemove :+= Some(containerId)
     Thread.sleep(1000)
     val info = docker.inspectContainerCmd(containerId).exec()
     val ip = info.getNetworkSettings.getNetworks.get("bridge").getIpAddress
-    val hostNameFromSSH = SSH.connect(s"root@$ip", key = key)("echo", "$HOSTNAME").trim
-    hostNameFromSSH should not be empty
-    containerId should startWith(hostNameFromSSH)
+    val hostNameFromSSH = SSH(s"root@$ip", HostConfig(
+      PublicKeyLogin("root", key.file),
+      hostKeyVerifier = HostKeyVerifiers.DontVerify
+    )) {
+      client =>
+        client.exec("echo $HOSTNAME").right.map(_.stdOutAsString())
+    }
+    containerId should startWith(hostNameFromSSH.right.get)
   }
 
   "sshd" should "reject the wrong key" in {
-    val key = SSH.genKey()
-    val wrongKey = SSH.genKey("bad")
+    val key = SSH0.genKey()
+    val wrongKey = SSH0.genKey("bad")
     val containerId = SSHD(imageUnderTest).authorizedKeys(key.publicKey)
     containersToRemove :+= Some(containerId)
     Thread.sleep(1000)
     val info = docker.inspectContainerCmd(containerId).exec()
     val ip = info.getNetworkSettings.getNetworks.get("bridge").getIpAddress
-    assertThrows[Exception] {
-      SSH.connect(s"root@$ip", key = wrongKey)("echo", "$HOSTNAME")
+    SSH(s"root@$ip", PublicKeyLogin("root", wrongKey.file)) {_ => } should matchPattern{
+      case _:Left[String,_] =>
     }
   }
 
@@ -85,7 +91,7 @@ case class SSHD(imageName: String)(implicit docker: DockerClient) {
   }
 }
 
-object SSH {
+object SSH0 {
 
   case class Key(file: String, publicKey: String)
 
