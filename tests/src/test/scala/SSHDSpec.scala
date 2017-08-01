@@ -8,7 +8,7 @@ class SSHDSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Before
   val imageUnderTest = "valdisxp1/sshd-socat:latest"
 
   implicit var docker: DockerClient = _
-  var containerToRemove: Option[String] = None
+  var containersToRemove: Seq[String] = Nil
 
   override protected def beforeAll() =  {
     docker = DockerClientBuilder.getInstance("unix:///var/run/docker.sock").build()
@@ -16,7 +16,7 @@ class SSHDSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Before
   "user" should "be able to login with a fixed public key" in {
     val key = SSH.genKey()
     val containerId = SSHD(imageUnderTest).authorizedKeys(key.publicKey)
-    containerToRemove = Some(containerId)
+    containersToRemove :+= Some(containerId)
     Thread.sleep(1000)
     val info = docker.inspectContainerCmd(containerId).exec()
     val ip = info.getNetworkSettings.getNetworks.get("bridge").getIpAddress
@@ -44,10 +44,11 @@ class SSHDSpec extends FlatSpec with Matchers with BeforeAndAfterAll with Before
   }
 
   after {
-    containerToRemove.foreach {
+    containersToRemove.foreach {
       id =>
         docker.removeContainerCmd(id).withForce(true).exec()
     }
+    containersToRemove = Nil
   }
 
   override protected def afterAll() = {
