@@ -1,0 +1,9 @@
+sudo: required
+
+services:
+  - docker
+script:
+  - docker build -t valdisxp1/sshd-socat:latest amd64/
+  - docker build -t valdisxp1/sshd-socat-docker:latest amd64/include-docker-client/
+  - docker build -t tester tests/
+  - docker run --rm --name tester -v /var/run/docker.sock:/var/run/docker.sock tester
