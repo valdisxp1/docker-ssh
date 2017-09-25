@@ -8,6 +8,7 @@ fi
 echo "${AUTHORIZED_KEYS}" | tr , "\n" > /root/.ssh/authorized_keys.new
 
 # check if the keys are valid
+echo "New key file signatures:"
 ssh-keygen -lf /root/.ssh/authorized_keys.new
 if [ $? -ne 0 ]
 then
