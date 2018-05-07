@@ -5,8 +5,8 @@ then
 	ssh-keygen -A
 fi
 
-mkdir -p /root/.ssh
-chmod 700 /root/.ssh
+mkdir -p ~/.ssh
+chmod 700 ~/.ssh
 
 echo "---------- SERVER PUBLIC KEYS ----------"
 cat /etc/ssh/ssh_host_*.pub
@@ -16,7 +16,7 @@ echo "---------- END ----------"
 
 ./update_keys.sh
 
-if ! ls /root/.ssh/authorized_keys 1> /dev/null 2>&1
+if ! ls ~/.ssh/authorized_keys 1> /dev/null 2>&1
 then
 	>&2 echo "ERROR: authorized_keys file missing in /root/.ssh/"
         >&2 echo "       make sure \$AUTHORIZED_KEYS contains at least 1 key"
